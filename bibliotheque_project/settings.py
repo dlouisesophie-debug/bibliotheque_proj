@@ -85,6 +85,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 ROOT_URLCONF = 'bibliotheque_project.urls'
 
 TEMPLATES = [
@@ -106,13 +107,26 @@ TEMPLATES = [
 WSGI_APPLICATION = 'bibliotheque_project.wsgi.application'
 
 # =========================
-# DATABASE (RENDER POSTGRES)
+# DATABASE (RENDER FREE - SQLite)
 # =========================
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL')
-    )
-}
+ON_RENDER = os.environ.get('RENDER', False)
+
+if ON_RENDER:
+    # Sur Render Free, utilise SQLite (pas besoin de PostgreSQL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+    print("📁 Using SQLite database on Render")
+else:
+    # En local ou avec PostgreSQL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3')
+        )
+    }
 
 # =========================
 # PASSWORD VALIDATION
@@ -154,3 +168,16 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Documentation de l’API',
     'VERSION': '1.0.0',
 }
+
+# =========================
+# AUTO-MIGRATIONS POUR RENDER
+# =========================
+if ON_RENDER:
+    print("🔧 Render detected - running migrations...")
+    try:
+        from django.core.management import call_command
+        call_command('migrate', interactive=False, verbosity=1)
+        print("✅ Migrations completed successfully!")
+    except Exception as e:
+        print(f"⚠️ Migration warning: {e}")
+        print("Continuing startup anyway...")
