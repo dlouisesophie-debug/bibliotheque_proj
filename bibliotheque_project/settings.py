@@ -11,10 +11,17 @@ SECRET_KEY = os.environ.get(
     "django-insecure-change-me"
 )
 
-DEBUG = False
+# CORRECTION : Ne définir DEBUG qu'une seule fois
+# Pour Render, on utilise la variable d'environnement
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# 🌍 Render hosts
-ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
+# 🌍 Render hosts - CORRIGÉ
+ALLOWED_HOSTS = [
+    '.onrender.com',     # Pour ton API sur Render
+    'localhost', 
+    '127.0.0.1',
+    'bibliotheque-api-0eyr.onrender.com',  # Ton domaine exact
+]
 
 # =========================
 # APPLICATIONS
@@ -83,7 +90,7 @@ ROOT_URLCONF = 'bibliotheque_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # ← AJOUTEZ CETTE LIGNE
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -147,6 +154,3 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Documentation de l’API',
     'VERSION': '1.0.0',
 }
-DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
