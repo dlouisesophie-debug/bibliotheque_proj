@@ -1,16 +1,23 @@
 from pathlib import Path
 from datetime import timedelta
+import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-bhj$6)7&!pcx=i7a21vdud^inas6=b23zlt#t^#@#*3z(&@war'
+# ⚠️ EN PRODUCTION (Render)
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-change-me"
+)
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"] # à changer en production
+# 🌍 Render hosts
+ALLOWED_HOSTS = [".onrender.com", "localhost", "127.0.0.1"]
 
 # =========================
-# APPS
+# APPLICATIONS
 # =========================
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,7 +39,6 @@ INSTALLED_APPS = [
 
     # app
     'api',
-     
 ]
 
 # =========================
@@ -52,7 +58,7 @@ REST_FRAMEWORK = {
 }
 
 # =========================
-# JWT SETTINGS
+# JWT
 # =========================
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -64,6 +70,7 @@ SIMPLE_JWT = {
 # =========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Juste après SecurityMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,13 +78,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'bibliotheque_project.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # ← AJOUTEZ CETTE LIGNE
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -93,21 +99,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'bibliotheque_project.wsgi.application'
 
 # =========================
-# DATABASE
+# DATABASE (RENDER POSTGRES)
 # =========================
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bibliotheque',
-        'USER': 'postgres',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
 }
 
 # =========================
-# AUTH VALIDATION
+# PASSWORD VALIDATION
 # =========================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -125,9 +126,13 @@ USE_I18N = True
 USE_TZ = True
 
 # =========================
-# STATIC FILES
+# STATIC FILES (RENDER)
 # =========================
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# WhiteNoise config
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # =========================
 # DEFAULT PK
@@ -135,10 +140,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # =========================
-# DRF SPECTACULAR (DOC API)
+# DRF SPECTACULAR
 # =========================
 SPECTACULAR_SETTINGS = {
     'TITLE': 'API Bibliothèque',
     'DESCRIPTION': 'Documentation de l’API',
     'VERSION': '1.0.0',
 }
+DEBUG = True
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']

@@ -1,0 +1,31 @@
+# Créer le fichier emprunt_confirmation.html
+cat > templates/emails/emprunt_confirmation.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #007bff; color: white; padding: 10px; text-align: center; }
+        .content { padding: 20px; background: #f8f9fa; }
+        .footer { text-align: center; padding: 10px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Bibliothèque - Confirmation d'emprunt</h2>
+        </div>
+        <div class="content">
+            <p>Bonjour {{ utilisateur.username }},</p>
+            <p>Vous avez emprunté le livre :</p>
+            <h3>{{ livre.titre }}</h3>
+            <p><strong>Date d'emprunt :</strong> {{ date_emprunt|date:"d/m/Y H:i" }}</p>
+            <p>Merci de respecter la date de retour.</p>
+        </div>
+        <div class="footer">
+            <p>© 2025 Bibliothèque - Tous droits réservés</p>
+        </div>
+    </div>
+</body>
+</html>

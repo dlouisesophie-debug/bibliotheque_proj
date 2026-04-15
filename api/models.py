@@ -21,7 +21,7 @@ class Livre(models.Model):
     ]
 
     titre = models.CharField(max_length=300)
-    isbn = models.CharField(max_length=17, unique=True)
+    isbn = models.CharField(max_length=17, unique=True, blank=True, null=True)  # ← blank=True, null=True
     annee_publication = models.IntegerField()
     categorie = models.CharField(max_length=20, choices=CATEGORIES, default='roman')
     auteur = models.ForeignKey(Auteur, on_delete=models.CASCADE, related_name='livres')
