@@ -1,305 +1,47 @@
-from pathlib import Path
-from datetime import timedelta
-import os
-import dj_database_url
-
 # =========================
-# BASE DIRECTORY
-# =========================
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# =========================
-# SECURITY
-# =========================
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "django-insecure-change-me-in-production"
-)
-
-# CORRECTION : Ne définir DEBUG qu'une seule fois
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-
-# =========================
-# ALLOWED HOSTS - CORRIGÉ
+# ALLOWED HOSTS - PythonAnywhere
 # =========================
 ALLOWED_HOSTS = [
-    '.onrender.com',                      # Pour tous les services Render
-    'bibliotheque-api-0eyr.onrender.com', # Ton domaine exact
-    'localhost', 
+    '.pythonanywhere.com',           # Pour PythonAnywhere
+    'votre_nom_utilisateur.pythonanywhere.com',  # Remplacez par votre username
+    'localhost',
     '127.0.0.1',
 ]
 
 # =========================
-# APPLICATIONS
+# DATABASE - PythonAnywhere utilise MySQL par défaut
 # =========================
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+# PythonAnywhere offre MySQL (gratuit) et PostgreSQL (payant)
 
-    # Third party apps
-    'rest_framework',
-    'django_filters',
-    'rest_framework_simplejwt',
-    'drf_spectacular',
-    'corsheaders',  # AJOUTÉ
-    
-    # Local apps
-    'api',
-]
-
-# =========================
-# MIDDLEWARE
-# =========================
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # AJOUTÉ - doit être avant CommonMiddleware
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-# =========================
-# URLS & WSGI
-# =========================
-ROOT_URLCONF = 'bibliotheque_project.urls'
-WSGI_APPLICATION = 'bibliotheque_project.wsgi.application'
-
-# =========================
-# TEMPLATES
-# =========================
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-# =========================
-# DATABASE (RENDER FREE - SQLite)
-# =========================
-ON_RENDER = os.environ.get('RENDER', False)
-
-if ON_RENDER:
-    # Sur Render Free, utilise SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+# Option 1: MySQL (recommandé pour gratuit)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'votre_username$bibliotheque',  # ⚠️ Important: $ pour séparer
+        'USER': 'votre_username',
+        'PASSWORD': 'votre_mot_de_passe',
+        'HOST': 'votre_username.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
     }
-    print("📁 Using SQLite database on Render")
-else:
-    # En local ou avec PostgreSQL
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}'
-        )
-    }
+}
+
+# Option 2: SQLite (simple mais limité)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # =========================
-# PASSWORD VALIDATION
-# =========================
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# =========================
-# INTERNATIONALIZATION
-# =========================
-LANGUAGE_CODE = 'fr-fr'  # Changé en français
-TIME_ZONE = 'Europe/Paris'  # Changé fuseau horaire
-USE_I18N = True
-USE_TZ = True
-
-# =========================
-# STATIC FILES (RENDER)
+# STATIC FILES - PythonAnywhere
 # =========================
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
-# WhiteNoise configuration
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# =========================
-# MEDIA FILES
-# =========================
+STATIC_ROOT = '/home/votre_username/bibliotheque_proj/static'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/home/votre_username/bibliotheque_proj/media'
 
 # =========================
-# DEFAULT PRIMARY KEY
+# DEBUG - Toujours False en production
 # =========================
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# =========================
-# REST FRAMEWORK
-# =========================
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-}
-
-# =========================
-# JWT CONFIGURATION
-# =========================
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-}
-
-# =========================
-# DRF SPECTACULAR (API Documentation)
-# =========================
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'API Bibliothèque',
-    'DESCRIPTION': 'API de gestion de bibliothèque avec authentification JWT',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-    'COMPONENT_SPLIT_REQUEST': True,
-    'SWAGGER_UI_SETTINGS': {
-        'deepLinking': True,
-        'persistAuthorization': True,
-        'displayOperationId': True,
-    },
-}
-
-# =========================
-# CORS CONFIGURATION
-# =========================
-CORS_ALLOWED_ORIGINS = [
-    "https://bibliotheque-api-0eyr.onrender.com",
-    "http://localhost:3000",   # React development
-    "http://localhost:8000",   # Django development
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000",
-]
-
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
-
-# =========================
-# SECURITY SETTINGS (Production)
-# =========================
-if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-
-# =========================
-# LOGGING (Optionnel mais utile)
-# =========================
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': False,
-        },
-        'api': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
-
-# =========================
-# AUTO-MIGRATIONS POUR RENDER
-# =========================
-if ON_RENDER:
-    print("🔧 Render detected - running migrations...")
-    try:
-        from django.core.management import call_command
-        call_command('migrate', interactive=False, verbosity=1)
-        print("✅ Migrations completed successfully!")
-    except Exception as e:
-        print(f"⚠️ Migration warning: {e}")
-        print("Continuing startup anyway...")
+DEBUG = False

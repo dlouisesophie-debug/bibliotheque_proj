@@ -1,20 +1,17 @@
 from django.contrib.admin import AdminSite
-from django.template.response import TemplateResponse
-from .models import Livre, Auteur, Emprunt
+from api.models import Auteur, Livre, Emprunt
 
 class BibliothequeAdminSite(AdminSite):
-    site_header = "Administration Bibliothèque"
-    site_title = "Bibliothèque Admin"
+    site_header = "Administration Bibliotheque"
+    site_title = "Bibliotheque Admin"
     
     def index(self, request, extra_context=None):
-        # Récupérer les statistiques
         context = {
             'total_livres': Livre.objects.count(),
             'livres_disponibles': Livre.objects.filter(disponible=True).count(),
-            'emprunts_cours': Emprunt.objects.filter(date_retour_effective__isnull=True).count(),
+            'emprunts_cours': Emprunt.objects.filter(retourne=False).count(),
             'total_auteurs': Auteur.objects.count(),
         }
         return super().index(request, extra_context=context)
 
-# Remplacer l'admin par défaut
 admin_site = BibliothequeAdminSite(name='myadmin')
