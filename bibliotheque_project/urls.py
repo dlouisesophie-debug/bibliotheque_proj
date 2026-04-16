@@ -4,30 +4,24 @@ from django.http import JsonResponse
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
-    TokenVerifyView,
 )
 
 def home(request):
     return JsonResponse({
-        'message': 'API Bibliothèque',
+        'message': 'API Bibliothèque en ligne !',
         'endpoints': {
-            'api': '/api/',
-            'admin': '/admin/',
+            'auteurs': '/api/auteurs/',
+            'livres': '/api/livres/',
+            'emprunts': '/api/emprunts/',
             'token': '/api/token/',
-            'token_refresh': '/api/token/refresh/',
-            'token_verify': '/api/token/verify/',
+            'admin': '/admin/',
         }
     })
 
 urlpatterns = [
-    path('', home, name='home'),
+    path('', home),
     path('admin/', admin.site.urls),
-    
-    # JWT endpoints
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    
-    # API router
     path('api/', include('api.urls')),
 ]
