@@ -3,24 +3,30 @@ from datetime import timedelta
 import os
 import dj_database_url
 
+# =========================
+# BASE DIRECTORY
+# =========================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ⚠️ EN PRODUCTION (Render)
+# =========================
+# SECURITY
+# =========================
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
-    "django-insecure-change-me"
+    "django-insecure-change-me-in-production"
 )
 
 # CORRECTION : Ne définir DEBUG qu'une seule fois
-# Pour Render, on utilise la variable d'environnement
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# 🌍 Render hosts - CORRIGÉ
+# =========================
+# ALLOWED HOSTS - CORRIGÉ
+# =========================
 ALLOWED_HOSTS = [
-    '.onrender.com',     # Pour ton API sur Render
+    '.onrender.com',                      # Pour tous les services Render
+    'bibliotheque-api-0eyr.onrender.com', # Ton domaine exact
     'localhost', 
     '127.0.0.1',
-    'bibliotheque-api-0eyr.onrender.com',  # Ton domaine exact
 ]
 
 # =========================
@@ -34,50 +40,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # DRF
+    # Third party apps
     'rest_framework',
     'django_filters',
-
-    # JWT
     'rest_framework_simplejwt',
-
-    # API DOC
     'drf_spectacular',
-
-    # app
+    'corsheaders',  # AJOUTÉ
+    
+    # Local apps
     'api',
 ]
-
-# =========================
-# REST FRAMEWORK
-# =========================
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-    ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-}
-
-# =========================
-# JWT
-# =========================
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-}
 
 # =========================
 # MIDDLEWARE
 # =========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Juste après SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # AJOUTÉ - doit être avant CommonMiddleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,8 +66,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# =========================
+# URLS & WSGI
+# =========================
 ROOT_URLCONF = 'bibliotheque_project.urls'
+WSGI_APPLICATION = 'bibliotheque_project.wsgi.application'
 
+# =========================
+# TEMPLATES
+# =========================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -104,15 +91,13 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'bibliotheque_project.wsgi.application'
-
 # =========================
 # DATABASE (RENDER FREE - SQLite)
 # =========================
 ON_RENDER = os.environ.get('RENDER', False)
 
 if ON_RENDER:
-    # Sur Render Free, utilise SQLite (pas besoin de PostgreSQL)
+    # Sur Render Free, utilise SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -124,7 +109,7 @@ else:
     # En local ou avec PostgreSQL
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3')
+            default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}'
         )
     }
 
@@ -132,17 +117,25 @@ else:
 # PASSWORD VALIDATION
 # =========================
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 # =========================
 # INTERNATIONALIZATION
 # =========================
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'fr-fr'  # Changé en français
+TIME_ZONE = 'Europe/Paris'  # Changé fuseau horaire
 USE_I18N = True
 USE_TZ = True
 
@@ -151,22 +144,151 @@ USE_TZ = True
 # =========================
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
-# WhiteNoise config
+# WhiteNoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # =========================
-# DEFAULT PK
+# MEDIA FILES
+# =========================
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# =========================
+# DEFAULT PRIMARY KEY
 # =========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # =========================
-# DRF SPECTACULAR
+# REST FRAMEWORK
+# =========================
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
+
+# =========================
+# JWT CONFIGURATION
+# =========================
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+}
+
+# =========================
+# DRF SPECTACULAR (API Documentation)
 # =========================
 SPECTACULAR_SETTINGS = {
     'TITLE': 'API Bibliothèque',
-    'DESCRIPTION': 'Documentation de l’API',
+    'DESCRIPTION': 'API de gestion de bibliothèque avec authentification JWT',
     'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+    },
+}
+
+# =========================
+# CORS CONFIGURATION
+# =========================
+CORS_ALLOWED_ORIGINS = [
+    "https://bibliotheque-api-0eyr.onrender.com",
+    "http://localhost:3000",   # React development
+    "http://localhost:8000",   # Django development
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# =========================
+# SECURITY SETTINGS (Production)
+# =========================
+if not DEBUG:
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+
+# =========================
+# LOGGING (Optionnel mais utile)
+# =========================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
 
 # =========================
